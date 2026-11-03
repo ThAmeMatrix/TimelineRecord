@@ -88,6 +88,7 @@ ipcMain.handle('desktop:info', async () => ({
 /* ------------------------------ 窗口 ------------------------------ */
 
 function createWindow() {
+  const iconFile = path.join(__dirname, '..', 'assets', 'icon.ico');
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -95,6 +96,8 @@ function createWindow() {
     minHeight: 600,
     title: '时间轴记录',
     backgroundColor: '#0c0e13',
+    // 打包后窗口会用 exe 自带的图标；开发模式下显式指定
+    icon: fs.existsSync(iconFile) ? iconFile : undefined,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

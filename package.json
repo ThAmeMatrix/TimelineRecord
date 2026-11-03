@@ -14,11 +14,12 @@
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
+    "icon": "node scripts/make-icon.mjs",
     "desktop": "npm run build && electron .",
     "desktop:dev": "electron . --dev",
     "desktop:dist": "npm run build && electron-builder --win --x64"
   },
-  "dependencies": {
+  "devDependencies": {
     "@tiptap/core": "^2.27.3",
     "@tiptap/extension-code-block-lowlight": "^2.27.3",
     "@tiptap/extension-image": "^2.27.3",
@@ -34,7 +35,14 @@
     "@tiptap/react": "^2.27.3",
     "@tiptap/starter-kit": "^2.27.3",
     "@tiptap/suggestion": "^2.27.3",
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "dompurify": "^3.4.17",
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
     "highlight.js": "^11.12.0",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.66.0",
@@ -43,31 +51,27 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tiptap-markdown": "^0.8.10",
-    "zustand": "^5.0.16"
-  },
-  "devDependencies": {
-    "@types/markdown-it": "^14.2.0",
-    "@types/node": "^22.20.5",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "electron": "^45.2.1",
-    "electron-builder": "^26.18.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
-    "vite-plugin-singlefile": "^2.3.4"
+    "vite-plugin-singlefile": "^2.3.4",
+    "zustand": "^5.0.16"
   },
   "build": {
     "appId": "com.thame.timelinerecord",
     "productName": "TimelineRecord",
+    "icon": "assets/icon.ico",
     "directories": {
       "output": "release"
     },
     "files": [
       "electron/**",
-      "dist/**"
+      "dist/**",
+      "assets/**"
     ],
+    "compression": "maximum",
+    "afterPack": "scripts/afterPack.cjs",
     "win": {
+      "icon": "assets/icon.ico",
       "target": [
         "nsis",
         "portable"
