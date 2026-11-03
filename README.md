@@ -12,7 +12,19 @@ npm install
 npm run dev        # 开发：http://localhost:5173
 npm run build      # 构建到 dist/index.html，并复制一份到项目根目录的 index.html
 npm run preview    # 本地预览构建结果：http://localhost:4173
+
+npm run desktop        # 构建 + 打开桌面版窗口（Electron）
+npm run desktop:dev    # 桌面版开发：连接 npm run dev 的热更新服务器
+npm run desktop:dist   # 打包 Windows 安装包与便携版到 release/
 ```
+
+## 桌面版（Electron）
+
+- `npm run desktop:dist` 产出 `release/TimelineRecord Setup <版本>.exe`（安装版）与 `release/TimelineRecord-<版本>-portable.exe`（便携版，双击即用、免安装）。
+- 桌面版数据保存在 Electron 自己的配置目录（`%APPDATA%/TimelineRecord`），与浏览器互不相通；**保存 / 打开 JSON 走系统文件对话框**，首次保存后 `Ctrl+S` 直接覆盖同一个文件（设置 → 数据 里可取消关联）。
+- **内置跨域代理**：桌面版自带与 `npm run dev` 相同的本地代理，豆瓣、必应图片、百度图片这些来源开箱即用，无需再配置代理地址。
+- 桌面版独有代码：`electron/main.cjs`（窗口、菜单、原生文件对话框）、`electron/server.cjs`（本地服务 + 跨域代理）、`electron/preload.cjs` 与 `src/local/desktop.ts`（`window.desktop` 桥接，网页版自动回落到浏览器行为）。
+- 打包配置在 `package.json` 的 `build` 字段；未配置代码签名，Windows 首次运行可能提示未知发布者。
 
 页面的源码模板是 `src/index.html`（Vite 的 root 是 `src/`）；项目根目录的 `index.html` 只是构建产物，不要手动编辑。
 

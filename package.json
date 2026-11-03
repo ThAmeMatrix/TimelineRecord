@@ -3,15 +3,20 @@
   "version": "0.2.0",
   "private": true,
   "description": "把动画、漫画、小说、电影、电视剧与日常事件铺在同一条时间轴上的记录工具（纯前端，数据保存在浏览器并可导出为 JSON）",
+  "author": "ThAmeMatrix",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"
   },
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "desktop": "npm run build && electron .",
+    "desktop:dev": "electron . --dev",
+    "desktop:dist": "npm run build && electron-builder --win --x64"
   },
   "dependencies": {
     "@tiptap/core": "^2.27.3",
@@ -46,8 +51,46 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vite-plugin-singlefile": "^2.3.4"
+  },
+  "build": {
+    "appId": "com.thame.timelinerecord",
+    "productName": "TimelineRecord",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**",
+      "dist/**"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "TimelineRecord-${version}-portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "language": "2052"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
   }
 }

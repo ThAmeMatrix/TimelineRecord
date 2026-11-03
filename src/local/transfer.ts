@@ -5,6 +5,7 @@
  */
 import type { Profile } from '../types';
 import * as db from './db';
+import { desktop } from './desktop';
 import * as idb from './idb';
 import { collectMediaIds, listMedia, type MediaRecord } from './media';
 import { ApiError, isValidDate } from './util';
@@ -130,17 +131,22 @@ type PickerWindow = Window & {
 const PICKER_TYPES = [{ description: '时间轴数据（JSON）', accept: { 'application/json': ['.json'] } }];
 
 export function canBindFile(): boolean {
+  // 桌面版：主进程记住文件路径，Ctrl+S 直接覆盖
+  if (desktop()) return true;
   // file:// 是透明（opaque）源，文件系统访问 API 既不可靠也无意义（没有可供绑定的“当前文件”）
   if (location.protocol === 'file:') return false;
   return typeof (window as PickerWindow).showSaveFilePicker === 'function';
 }
 
 export async function boundFileName(): Promise<string | null> {
+  const d = desktop();
+  if (d) return d.fileName().catch(() => null);
   const h = await idb.kvGet<FileHandleLike>('fileHandle').catch(() => undefined);
   return h?.name ?? null;
 }
 
 export async function unbindFile(): Promise<void> {
+  await desktop()?.unbind().catch(() => {});
   await idb.write([{ store: 'kv', del: ['fileHandle'] }]);
 }
 
@@ -160,6 +166,15 @@ function download(blob: Blob, name: string) {
  * 否则以下载的方式保存。返回保存到的文件名；用户取消时返回 null。
  */
 export async function saveJson({ saveAs = false, includeMedia = true }: { saveAs?: boolean; includeMedia?: boolean } = {}): Promise<string | null> {
+  // 桌面版：系统保存对话框，并记住位置供之后的 Ctrl+S 使用
+  const d = desktop();
+  if (d) {
+    const blob = await buildExport(includeMedia);
+    const saved = await d.saveJson({ text: await blob.text(), name: exportFileName(), saveAs });
+    if (!saved) return null;
+    await db.markSaved();
+    return saved.name;
+  }
   const w = window as PickerWindow;
   // file:// 下文件系统访问 API 不可靠：直接走下载分支
   if (w.showSaveFilePicker && location.protocol !== 'file:') {
@@ -192,6 +207,13 @@ export async function saveJson({ saveAs = false, includeMedia = true }: { saveAs
 
 /** 通过文件系统访问 API 打开文件（之后保存会写回该文件）；不支持时返回 undefined */
 export async function pickOpenFile(): Promise<File | null | undefined> {
+  // 桌面版：系统打开对话框，之后保存会写回同一个文件
+  const d = desktop();
+  if (d) {
+    const opened = await d.openJson();
+    if (!opened) return opened;
+    return new File([opened.text], opened.name, { type: 'application/json' });
+  }
   const w = window as PickerWindow;
   if (!w.showOpenFilePicker || location.protocol === 'file:') return undefined;
   let handles: FileHandleLike[];
